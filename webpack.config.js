@@ -1,4 +1,5 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const server = require("./server");
 
 module.exports = {
   entry: [
@@ -27,6 +28,12 @@ module.exports = {
     open: true,
     compress: true,
     port: 9000,
+    onBeforeSetupMiddleware: function (devServer) {
+      if (!devServer) {
+        throw new Error("webpack-dev-server is not defined");
+      }
+      server(devServer.app);
+    },
   },
 
   module: {
