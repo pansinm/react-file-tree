@@ -1,3 +1,4 @@
+import { Children } from "react";
 import { TreeNode } from "./type";
 
 export function flatTreeData(treeData: TreeNode[]): TreeNode[] {
@@ -28,16 +29,33 @@ export function flatTreeData(treeData: TreeNode[]): TreeNode[] {
   return list;
 }
 
+/**
+ * 计算层级
+ * @param uri
+ * @param rootUri
+ * @returns
+ */
 export function calcLevel(uri: string, rootUri: string) {
   if (uri === rootUri) return 0;
   return uri.slice(rootUri.length).split("/").length;
 }
 
+/**
+ * 根据uri获取文件名
+ * @param uri
+ * @returns
+ */
 export function getFileName(uri: string) {
   return uri.split("/").pop();
 }
 
-function locateTreeNode(tree: TreeNode, uri: string) {
+/**
+ * 根据uri获取节点路径
+ * @param tree
+ * @param uri
+ * @returns
+ */
+export function locateTreeNode(tree: TreeNode, uri: string) {
   if (tree.uri === uri) {
     return [];
   }
@@ -59,6 +77,12 @@ function locateTreeNode(tree: TreeNode, uri: string) {
   return null;
 }
 
+/**
+ * 根据子节点路径定位节点
+ * @param tree
+ * @param path
+ * @returns
+ */
 function getNodeByPath(tree: TreeNode, path: number[]): TreeNode {
   if (!path.length) {
     return tree;
@@ -67,7 +91,22 @@ function getNodeByPath(tree: TreeNode, path: number[]): TreeNode {
   return getNodeByPath(tree?.children?.[first] as TreeNode, rest);
 }
 
-export function updateTreeNodeProps(
+export function getNodeByUri(tree: TreeNode, uri: string) {
+  const path = locateTreeNode(tree, uri);
+  if (!path) {
+    return null;
+  }
+  return getNodeByPath(tree, path);
+}
+
+/**
+ * 更新节点属性，并返回新的树
+ * @param tree
+ * @param uri
+ * @param pairs
+ * @returns
+ */
+export function mergeTreeNodeProps(
   tree: TreeNode,
   uri: string,
   pairs: Partial<TreeNode>
@@ -76,14 +115,11 @@ export function updateTreeNodeProps(
   if (!path) {
     return tree;
   }
-  console.log([...path])
   let node = getNodeByPath(tree, path);
   let newNode = {
     ...node,
     ...pairs,
   };
-  
-  console.log(newNode);
 
   let index = path.pop() as number;
   while (index >= 0) {
@@ -98,4 +134,54 @@ export function updateTreeNodeProps(
     console.log(newNode);
   }
   return newNode;
+}
+
+export function addChildTo(tree: TreeNode, uri: string, node: TreeNode) {
+  const path = locateTreeNode(tree, uri);
+  if (!path) {
+    return tree;
+  }
+  let locatedNode = getNodeByPath(tree, path);
+  if (locatedNode?.children?.find((n) => n.uri === node.uri)) {
+    console.warn("重复uri");
+    return tree;
+  }
+  const children = [...(locatedNode.children || []), node];
+  return mergeTreeNodeProps(tree, uri, { children });
+}
+
+export function removeNode(tree: TreeNode, uri: string) {
+  const path = locateTreeNode(tree, uri);
+  if (!path) {
+    return tree;
+  }
+  // 删除根节点
+  if (!path.length) {
+    return undefined;
+  }
+  const index = path.pop() as number;
+  const parentPath = path;
+  const parent = getNodeByPath(tree, parentPath);
+  const children = [...(parent.children || [])];
+  children.splice(index, 1);
+  return mergeTreeNodeProps(tree, parent.uri, { children });
+}
+
+/**
+ * 遍历树，生成新的树，叶子节点优先遍历
+ * @param tree
+ * @param fn
+ * @returns
+ */
+export function treeMap(
+  tree: TreeNode,
+  fn: (treeNode: TreeNode) => TreeNode
+): TreeNode {
+  if (tree.children) {
+    return fn({
+      ...tree,
+      children: tree.children.map((node) => fn(node)),
+    });
+  }
+  return fn(tree);
 }

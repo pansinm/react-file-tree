@@ -1,3 +1,4 @@
+const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const server = require("./server");
 
@@ -40,10 +41,17 @@ module.exports = {
     rules: [
       // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
       { test: /\.tsx?$/, loader: "babel-loader" },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
     ],
   },
 
   plugins: [
+    new webpack.ProvidePlugin({
+      process: "process/browser",
+    }),
     new HtmlWebpackPlugin({
       template: __dirname + "/index.html",
       title: "React File Tree",
