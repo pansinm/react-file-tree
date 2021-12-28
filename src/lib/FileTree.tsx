@@ -271,9 +271,9 @@ export const FileTree: FC<FileTreeProps> = (props) => {
         onClick={handleItemExpand}
         onDragOver={(e, node) => {
           clearTimeout(timeoutRef.current);
-          // 延时一点展开目录，防止误操作
+          // 延时一点展开目录或者收缩目录，防止误操作
           timeoutRef.current = window.setTimeout(() => {
-            handleItemExpand(node, "expanded");
+            handleItemExpand(node);
           }, 500);
         }}
         onDrop={(e, from, to) => {
