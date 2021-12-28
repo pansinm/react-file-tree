@@ -10,7 +10,7 @@ yarn.lock
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-./lib/
+lib/*.js
 
 # Runtime data
 pids
