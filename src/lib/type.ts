@@ -20,12 +20,12 @@ export interface TreeNode {
 
 export type PromiseOrNot<T> = Promise<T> | T;
 
-export interface TreeAction {
+export interface TreeHandler {
   /**
    * 重命名节点
    * @param uri
    */
-  rename(uri: string): void;
+  renameNode(uri: string): void;
 
   /**
    * 直接重命名

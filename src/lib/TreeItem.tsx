@@ -36,6 +36,7 @@ export const TreeItem: FC<TreeItemProps> = ({
 }) => {
   return (
     <div
+      title={treeNode.uri}
       draggable={true}
       onDrop={(e) => {
         e.preventDefault();
@@ -61,7 +62,7 @@ export const TreeItem: FC<TreeItemProps> = ({
         e.dataTransfer.setData("text/plain", treeNode.uri);
       }}
       onClick={() => onClick(treeNode)}
-      style={{ ...style, paddingLeft: indent + indentUnit }}
+      style={{ whiteSpace: 'nowrap',...style, boxSizing: 'border-box', paddingLeft: indent + indentUnit }}
       onContextMenu={(e) => onContextMenu?.(e, treeNode)}
     >
       {treeItemRenderer(treeNode)}

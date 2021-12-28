@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useRef, useState } from "react";
-import { TreeAction, TreeNode } from "src/lib/type";
+import { TreeHandler, TreeNode } from "src/lib/type";
 import { FileTree } from "../src/lib";
 
 import {
@@ -60,7 +60,7 @@ function Input({
 export const Tree: FC = () => {
   const [root, setRoot] = useState<TreeNode>();
   const currentNodeRef = useRef<TreeNode>();
-  const ref = useRef<TreeAction>(null);
+  const handlerRef = useRef<TreeHandler>(null);
   const { show } = useContextMenu({
     id: MENU_ID,
   });
@@ -70,10 +70,10 @@ export const Tree: FC = () => {
       return;
     }
     if (data.type === "rename") {
-      ref.current?.rename(currentNodeRef.current?.uri);
+      handlerRef.current?.renameNode(currentNodeRef.current?.uri);
     }
     if (data.type === 'delete') {
-      ref.current?.delete(currentNodeRef.current?.uri);
+      handlerRef.current?.delete(currentNodeRef.current?.uri);
     }
   };
 
@@ -86,7 +86,7 @@ export const Tree: FC = () => {
   return (
     <>
       <FileTree
-        actionRef={ref}
+        handlerRef={handlerRef}
         root={root}
         onReadDir={handleReadDir}
         onContextMenu={(e, node) => {
@@ -101,9 +101,9 @@ export const Tree: FC = () => {
             return (
               <Input
                 value={title}
-                onBlur={() => ref.current?.cancelRename(treeNode.uri)}
+                onBlur={() => handlerRef.current?.cancelRename(treeNode.uri)}
                 onEnter={(val) => {
-                  ref.current?.renameTo(
+                  handlerRef.current?.renameTo(
                     treeNode.uri,
                     parts.concat(val).join("/")
                   );

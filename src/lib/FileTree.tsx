@@ -13,7 +13,7 @@ import React, {
 import { AutoSizer, List, ListRowRenderer } from "react-virtualized";
 import { initialState, reducer, State } from "./reducer";
 import { TreeItem } from "./TreeItem";
-import { PromiseOrNot, TreeAction, TreeNode } from "./type";
+import { PromiseOrNot, TreeHandler, TreeNode } from "./type";
 import {
   addChildTo,
   calcLevel,
@@ -27,7 +27,7 @@ import {
 } from "./utils";
 
 export interface FileTreeProps {
-  actionRef?: MutableRefObject<TreeAction | null>;
+  handlerRef?: MutableRefObject<TreeHandler | null>;
   /**
    * 无数据时展示
    */
@@ -145,11 +145,11 @@ export const FileTree: FC<FileTreeProps> = (props) => {
     setTree,
     props.onReadDir,
   ]);
-  const actions: TreeAction = {
+  const actions: TreeHandler = {
     create: (uri, node) => {
       setTree((curTree) => curTree && addChildTo(curTree, uri, node));
     },
-    rename: (uri) => {
+    renameNode: (uri) => {
       setTree(
         (curTree) =>
           curTree && mergeTreeNodeProps(curTree, uri, { renaming: true })
@@ -223,8 +223,8 @@ export const FileTree: FC<FileTreeProps> = (props) => {
     },
   };
 
-  if (props.actionRef) {
-    props.actionRef.current = actions;
+  if (props.handlerRef) {
+    props.handlerRef.current = actions;
   }
 
   const items = flatTreeData(tree ? [tree] : []);
