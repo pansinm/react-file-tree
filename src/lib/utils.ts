@@ -3,8 +3,8 @@ import { TreeNode } from "./type";
 
 /**
  * 将树转换成列表
- * @param treeData 
- * @returns 
+ * @param treeData
+ * @returns
  */
 export function flatTreeData(treeData: TreeNode[]): TreeNode[] {
   if (!treeData) {
@@ -98,15 +98,30 @@ function getNodeByPath(tree: TreeNode, path: number[]): TreeNode {
 
 /**
  * 根据uri查询节点
- * @param tree 
- * @param uri 
- * @returns 
+ * @param tree
+ * @param uri
+ * @returns
  */
 export function getNodeByUri(tree: TreeNode, uri: string) {
   const path = locateTreeNode(tree, uri);
   if (!path) {
     return null;
   }
+  return getNodeByPath(tree, path);
+}
+
+/**
+ * 获取父节点
+ * @param tree 
+ * @param uri 
+ * @returns 
+ */
+export function getParentNode(tree: TreeNode, uri: string) {
+  const path = locateTreeNode(tree, uri);
+  if (!path) {
+    return null;
+  }
+  path.pop();
   return getNodeByPath(tree, path);
 }
 
@@ -142,17 +157,16 @@ export function mergeTreeNodeProps(
       children,
     };
     index = path.pop() as number;
-    console.log(newNode);
   }
   return newNode;
 }
 
 /**
  * 为节点增加子节点
- * @param tree 
- * @param parentUri 
- * @param node 
- * @returns 
+ * @param tree
+ * @param parentUri
+ * @param node
+ * @returns
  */
 export function addChildTo(tree: TreeNode, parentUri: string, node: TreeNode) {
   const path = locateTreeNode(tree, parentUri);
@@ -170,9 +184,9 @@ export function addChildTo(tree: TreeNode, parentUri: string, node: TreeNode) {
 
 /**
  * 从树中删除某节点
- * @param tree 
- * @param uri 
- * @returns 
+ * @param tree
+ * @param uri
+ * @returns
  */
 export function removeNode(tree: TreeNode, uri: string) {
   const path = locateTreeNode(tree, uri);

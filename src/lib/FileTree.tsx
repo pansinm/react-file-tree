@@ -15,6 +15,7 @@ import {
   flatTreeData,
   getFileName,
   getNodeByUri,
+  getParentNode,
   mergeTreeNodeProps,
   removeNode,
   treeMap,
@@ -220,9 +221,9 @@ export const FileTree: FC<FileTreeProps> = (props) => {
         return;
       }
       const fromNode = getNodeByUri(tree, fromUri);
-      const toNode = getNodeByUri(tree, toUri);
+      let toNode = getNodeByUri(tree, toUri);
       if (toNode?.type === "file") {
-        return;
+        toNode = getParentNode(tree, toNode.uri);
       }
       if (fromNode && toNode) {
         await props.onMove?.(fromNode, toNode);
