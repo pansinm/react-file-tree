@@ -34,7 +34,8 @@
   },
   "scripts": {
     "test": "jest",
-    "start": "webpack serve"
+    "start": "webpack serve",
+    "prepublishOnly": "tsc"
   },
   "repository": {
     "type": "git",
