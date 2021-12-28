@@ -28,6 +28,7 @@ module.exports = function withApi(app) {
       next(error);
     }
   });
+
   app.get("/read_dir", (req, res, next) => {
     readdir(req.query.uri)
       .then((data) => res.send(data))

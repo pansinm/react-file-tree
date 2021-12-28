@@ -36,6 +36,7 @@ export const TreeItem: FC<TreeItemProps> = ({
 }) => {
   return (
     <div
+      className="file-tree__tree-item"
       title={treeNode.uri}
       draggable={true}
       onDrop={(e) => {

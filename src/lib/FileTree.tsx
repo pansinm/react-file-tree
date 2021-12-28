@@ -1,17 +1,12 @@
 import React, {
-  Dispatch,
-  DispatchWithoutAction,
   FC,
-  forwardRef,
   MutableRefObject,
   useCallback,
   useEffect,
-  useReducer,
   useRef,
   useState,
 } from "react";
 import { AutoSizer, List, ListRowRenderer } from "react-virtualized";
-import { initialState, reducer, State } from "./reducer";
 import { TreeItem } from "./TreeItem";
 import { PromiseOrNot, TreeHandler, TreeNode } from "./type";
 import {
@@ -20,7 +15,6 @@ import {
   flatTreeData,
   getFileName,
   getNodeByUri,
-  locateTreeNode,
   mergeTreeNodeProps,
   removeNode,
   treeMap,
@@ -33,7 +27,15 @@ export interface FileTreeProps {
    */
   emptyRenderer?: () => React.ReactElement;
 
+  /**
+   * 渲染节点
+   */
   treeItemRenderer?: (treeNode: TreeNode) => React.ReactNode;
+
+  /**
+   * 如果传入onChange，组件变成受控组件
+   */
+  onChange?: (root?: TreeNode) => void;
 
   /**
    * 读取目录，返回下一层级目录结构
@@ -82,6 +84,10 @@ export interface FileTreeProps {
    * 缩进单位，默认px
    */
   indentUnit?: string;
+}
+
+function defaultEmptyRenderer() {
+  return <div className="file-tree__empty">无内容</div>;
 }
 
 function useItemExpandCallback([tree, setTree, onReadDir]: [
@@ -140,17 +146,33 @@ export const FileTree: FC<FileTreeProps> = (props) => {
     setTree(props.root);
   }, [props.root]);
 
+  const items = flatTreeData(tree ? [tree] : []);
+
+  const handleTreeChange: typeof setTree = useCallback(
+    (newTree) => {
+      if (props.onChange) {
+        const finalTree =
+          typeof newTree === "function" ? newTree(tree) : newTree;
+        props.onChange(finalTree);
+      } else {
+        setTree(newTree);
+      }
+    },
+    [setTree, props.onChange]
+  );
+
   const handleItemExpand = useItemExpandCallback([
     tree,
-    setTree,
+    handleTreeChange,
     props.onReadDir,
   ]);
-  const actions: TreeHandler = {
+
+  const handlers: TreeHandler = {
     create: (uri, node) => {
-      setTree((curTree) => curTree && addChildTo(curTree, uri, node));
+      handleTreeChange((curTree) => curTree && addChildTo(curTree, uri, node));
     },
     renameNode: (uri) => {
-      setTree(
+      handleTreeChange(
         (curTree) =>
           curTree && mergeTreeNodeProps(curTree, uri, { renaming: true })
       );
@@ -173,7 +195,7 @@ export const FileTree: FC<FileTreeProps> = (props) => {
           uri: newUri,
         };
       });
-      setTree((t) => mergeTreeNodeProps(tree, uri, renamedNode));
+      handleTreeChange((t) => mergeTreeNodeProps(tree, uri, renamedNode));
     },
     delete: async (uri) => {
       if (!tree) {
@@ -184,13 +206,15 @@ export const FileTree: FC<FileTreeProps> = (props) => {
         return;
       }
       await props.onDelete?.(node);
-      setTree((t) => t && removeNode(t, uri));
+      handleTreeChange((t) => t && removeNode(t, uri));
     },
     expand: (uri, expanded) => {
-      setTree((t) => t && mergeTreeNodeProps(t, uri, { expanded }));
+      handleTreeChange((t) => t && mergeTreeNodeProps(t, uri, { expanded }));
     },
     cancelRename: (uri) =>
-      setTree((t) => t && mergeTreeNodeProps(t, uri, { renaming: false })),
+      handleTreeChange(
+        (t) => t && mergeTreeNodeProps(t, uri, { renaming: false })
+      ),
     move: async (fromUri, toUri) => {
       if (!tree) {
         return;
@@ -218,16 +242,18 @@ export const FileTree: FC<FileTreeProps> = (props) => {
             uri: newUri,
           };
         });
-        setTree((t) => t && addChildTo(finalTree!, toUri, renamedNode));
+        handleTreeChange(
+          (t) => t && addChildTo(finalTree!, toUri, renamedNode)
+        );
       }
     },
   };
 
   if (props.handlerRef) {
-    props.handlerRef.current = actions;
+    props.handlerRef.current = handlers;
   }
 
-  const items = flatTreeData(tree ? [tree] : []);
+  const timeoutRef = useRef(0);
   const rowRenderer: ListRowRenderer = (params) => {
     const treeNode = items[params.index];
     const indent = props.indent || 10;
@@ -244,10 +270,15 @@ export const FileTree: FC<FileTreeProps> = (props) => {
         treeItemRenderer={treeItemRenderer}
         onClick={handleItemExpand}
         onDragOver={(e, node) => {
-          handleItemExpand(node, "expanded");
+          clearTimeout(timeoutRef.current);
+          // 延时一点展开目录，防止误操作
+          timeoutRef.current = window.setTimeout(() => {
+            handleItemExpand(node, "expanded");
+          }, 500);
         }}
         onDrop={(e, from, to) => {
-          actions.move(from, to);
+          clearTimeout(timeoutRef.current);
+          handlers.move(from, to);
         }}
       />
     );
@@ -257,10 +288,11 @@ export const FileTree: FC<FileTreeProps> = (props) => {
     <AutoSizer>
       {({ height, width }) => (
         <List
+          className="file-tree"
           height={height}
           width={width}
           overscanRowCount={30}
-          noRowsRenderer={props?.emptyRenderer}
+          noRowsRenderer={props?.emptyRenderer || defaultEmptyRenderer}
           rowCount={items.length}
           rowHeight={30}
           rowRenderer={rowRenderer}
