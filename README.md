@@ -10,7 +10,7 @@ yarn add @sinm/react-file-tree
 
 ## Usage
 
-参考[example/Tree.tsx](example/tree.tsx)
+参考[example/Tree.tsx](example/Tree.tsx)
 
 ## Demo
 
