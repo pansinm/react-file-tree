@@ -54,9 +54,9 @@ export interface FileTreeProps {
   onDelete?: (treeNode: TreeNode) => PromiseOrNot<void>;
 
   /**
-   * 当前节点新增目录
+   * 为父节点新增子节点
    */
-  onNewDir?: (treeNode: TreeNode) => PromiseOrNot<TreeNode>;
+  onNew?: (parentNode: TreeNode, childNode: TreeNode) => PromiseOrNot<TreeNode>;
 
   /**
    * 移动节点
@@ -169,7 +169,13 @@ export const FileTree: FC<FileTreeProps> = (props) => {
   ]);
 
   const handlers: TreeHandler = {
-    create: (uri, node) => {
+    create: async (uri, node) => {
+      if (!tree) {
+        return;
+      }
+      const parentNode = getNodeByUri(tree, uri);
+      if (!parentNode) return;
+      await props?.onNew?.(parentNode, node);
       handleTreeChange((curTree) => curTree && addChildTo(curTree, uri, node));
     },
     renameNode: (uri) => {
