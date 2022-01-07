@@ -80,7 +80,10 @@ export interface FileTreeProps {
    * 子节点缩进尺寸
    */
   indent?: number;
-
+  /**
+   *  节点高度，默认30
+   */
+  rowHeight?: number;
   /**
    * 缩进单位，默认px
    */
@@ -299,9 +302,9 @@ export const FileTree: FC<FileTreeProps> = (props) => {
           height={height}
           width={width}
           overscanRowCount={30}
-          noRowsRenderer={props?.emptyRenderer || defaultEmptyRenderer}
+          noRowsRenderer={props.emptyRenderer || defaultEmptyRenderer}
           rowCount={items.length}
-          rowHeight={30}
+          rowHeight={props.rowHeight || 30}
           rowRenderer={rowRenderer}
           // scrollToIndex={scrollToIndex}
         />
