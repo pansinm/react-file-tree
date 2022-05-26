@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useRef, useState } from "react";
-import { TreeHandler, TreeNode } from "src/lib/type";
+import { TreeHandler, TreeNode } from "../src/lib/type";
 import { FileTree, RenameInput } from "../src/lib";
 
 import {
@@ -58,7 +58,7 @@ export const Tree: FC = () => {
         }}
         treeItemRenderer={(treeNode) => {
           const parts = treeNode.uri.split("/");
-          const title = parts.pop() || "";
+          const title = decodeURIComponent(parts.pop() || "");
 
           if (treeNode.renaming) {
             return (

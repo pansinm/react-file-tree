@@ -17,7 +17,7 @@ async function readdir(uri) {
 module.exports = function withApi(app) {
   app.get("/root", async (req, res, next) => {
     try {
-      const uri = url.pathToFileURL(process.cwd());
+      const uri = url.pathToFileURL('/data');
       res.send({
         uri,
         type: "directory",

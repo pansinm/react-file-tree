@@ -8,7 +8,7 @@ module.exports = {
     "webpack/hot/dev-server.js",
     // Dev server client for web socket transport, hot and live reload logic
     "webpack-dev-server/client/index.js?hot=true&live-reload=true",
-    __dirname + "/example/index.tsx",
+    __dirname + "/explorer/index.tsx",
   ],
   output: {
     filename: "bundle.js",
