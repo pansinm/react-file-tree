@@ -9,6 +9,7 @@ import React, {
 import { AutoSizer, List, ListRowRenderer } from "react-virtualized";
 import { TreeItem } from "./TreeItem";
 import { PromiseOrNot, TreeHandler, TreeNode } from "./type";
+import useEvent from "./useEvent";
 import {
   addChildTo,
   calcLevel,
@@ -62,7 +63,7 @@ export interface FileTreeProps {
   /**
    * 移动节点
    */
-  onMove?: (treeNode: TreeNode, toNode: TreeNode) => PromiseOrNot<void>;
+  onMove: (treeNode: TreeNode, toNode: TreeNode) => PromiseOrNot<TreeNode[]>;
 
   /**
    * 构造菜单
@@ -151,6 +152,44 @@ export const FileTree: FC<FileTreeProps> = (props) => {
     setTree(props.root);
   }, [props.root]);
 
+  const timeoutRef = useRef(0);
+
+  const handleDrop = useEvent(
+    async (
+      event: React.DragEvent<HTMLDivElement>,
+      fromUri: string,
+      toUri: string
+    ) => {
+      clearTimeout(timeoutRef.current);
+      if (!tree) {
+        return;
+      }
+      const fromNode = getNodeByUri(tree, fromUri);
+      if (!fromNode) {
+        return;
+      }
+      let toNode = getNodeByUri(tree, toUri);
+      if (toNode?.type === "file") {
+        toNode = getParentNode(tree, toNode.uri);
+      }
+      if (!toNode) {
+        return;
+      }
+      if (
+        fromNode.uri === toNode.uri ||
+        isParentUri(toNode.uri, fromNode.uri)
+      ) {
+        return;
+      }
+
+      const toNodeChildren = await props.onMove(fromNode, toNode);
+      let finalTree = removeNode(tree, fromUri);
+      handleTreeChange(
+        (t) => t &&  mergeTreeNodeProps(finalTree!, toNode?.uri as string, { expanded: true, children: toNodeChildren })
+      );
+    }
+  );
+
   const items = flatTreeData(tree ? [tree] : []);
 
   const handleTreeChange: typeof setTree = useCallback(
@@ -226,57 +265,12 @@ export const FileTree: FC<FileTreeProps> = (props) => {
       handleTreeChange(
         (t) => t && mergeTreeNodeProps(t, uri, { renaming: false })
       ),
-    move: async (fromUri, toUri) => {
-      console.log(fromUri, toUri)
-      if (!tree || fromUri === toUri) {
-        return;
-      }
-      const fromNode = getNodeByUri(tree, fromUri);
-      if (!fromNode) {
-        return;
-      }
-      let toNode = getNodeByUri(tree, toUri);
-      if (toNode?.type === "file") {
-        toNode = getParentNode(tree, toNode.uri);
-      }
-      if (!toNode) {
-        return;
-      }
-      if (fromNode.uri === toNode.uri || isParentUri(toNode.uri, fromNode.uri)) {
-        return;
-      }
-      console.log(fromNode, toNode)
-      if (fromNode && toNode) {
-        await props.onMove?.(fromNode, toNode);
-        let finalTree = removeNode(tree, fromUri);
-        // 递归修改url
-        const name = fromUri.split("/").pop();
-        const renamedUri = toNode.uri + "/" + name;
-        if (toNode.children?.find((node) => node.uri === renamedUri)) {
-          // todo: 错误提示
-          return;
-        }
-        const renamedNode = treeMap(fromNode, (item) => {
-          const newUri = item.uri.replace(fromUri, renamedUri);
-          return {
-            ...item,
-            renaming: false,
-            uri: newUri,
-          };
-        });
-        console.log('renamed', renamedNode)
-        handleTreeChange(
-          (t) => t && addChildTo(finalTree!, toNode?.uri as string, renamedNode)
-        );
-      }
-    },
   };
 
   if (props.handlerRef) {
     props.handlerRef.current = handlers;
   }
 
-  const timeoutRef = useRef(0);
   const rowRenderer: ListRowRenderer = (params) => {
     const treeNode = items[params.index];
     const indent = props.indent || 10;
@@ -299,10 +293,7 @@ export const FileTree: FC<FileTreeProps> = (props) => {
             handleItemExpand(node);
           }, 500);
         }}
-        onDrop={(e, from, to) => {
-          clearTimeout(timeoutRef.current);
-          handlers.move(from, to);
-        }}
+        onDrop={handleDrop}
       />
     );
   };

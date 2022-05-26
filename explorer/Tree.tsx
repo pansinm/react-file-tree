@@ -10,15 +10,25 @@ import {
   useContextMenu,
 } from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
+import useEvent from "../src/lib/useEvent";
 
-const handleReadDir = (uri: string) => {
+const readDir = (uri: string): Promise<TreeNode[]> => {
   return fetch(`/read_dir?uri=${encodeURIComponent(uri)}`).then((res) =>
     res.json()
   );
 };
 
-const MENU_ID = "context-menu";
+const move = (fromUri, toUri): Promise<TreeNode[]> => {
+  return fetch("/move", {
+    body: JSON.stringify({ fromUri, toUri }),
+    method: "post",
+    headers: {
+      "content-type": "application/json",
+    },
+  }).then((res) => res.json());
+};
 
+const MENU_ID = "context-menu";
 
 export const Tree: FC = () => {
   const [root, setRoot] = useState<TreeNode>();
@@ -35,7 +45,7 @@ export const Tree: FC = () => {
     if (data.type === "rename") {
       handlerRef.current?.renameNode(currentNodeRef.current?.uri);
     }
-    if (data.type === 'delete') {
+    if (data.type === "delete") {
       handlerRef.current?.delete(currentNodeRef.current?.uri);
     }
   };
@@ -46,12 +56,17 @@ export const Tree: FC = () => {
       .then(setRoot);
   }, []);
 
+  const handleMove = useEvent((fromNode: TreeNode, toNode: TreeNode) => {
+    return move(fromNode.uri, toNode.uri);
+  });
+
   return (
     <>
       <FileTree
         handlerRef={handlerRef}
         root={root}
-        onReadDir={handleReadDir}
+        onReadDir={readDir}
+        onMove={handleMove}
         onContextMenu={(e, node) => {
           currentNodeRef.current = node;
           show(e);

@@ -5,6 +5,7 @@ export type Async = "unloaded" | "loading" | "loaded";
 export interface TreeNode {
   type: TreeNodeType;
   uri: string;
+  mime?: string;
   expanded?: boolean;
 
   /**
@@ -54,9 +55,4 @@ export interface TreeHandler {
    * 取消重命名
    */
   cancelRename(uri: string): void;
-
-  /**
-   * 移动文件或目录
-   */
-  move(fromUri: string, toUri: string): void;
 }
