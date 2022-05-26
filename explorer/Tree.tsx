@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import { TreeHandler, TreeNode } from "../src/lib/type";
-import { FileTree, RenameInput } from "../src/lib";
+import { FileTree } from "../src/lib";
 
 import {
   Menu,
@@ -11,6 +11,8 @@ import {
 } from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 import useEvent from "../src/lib/useEvent";
+import TreeItemIcon from "./TreeItemIcon";
+import RenameInput from "./RenameInput";
 
 const readDir = (uri: string): Promise<TreeNode[]> => {
   return fetch(`/read_dir?uri=${encodeURIComponent(uri)}`).then((res) =>
@@ -89,7 +91,7 @@ export const Tree: FC = () => {
               />
             );
           }
-          return <div>{title}</div>;
+          return <div><TreeItemIcon treeNode={treeNode}/>{title}</div>;
         }}
       />
 
