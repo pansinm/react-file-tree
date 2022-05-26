@@ -16,6 +16,7 @@ import {
   getFileName,
   getNodeByUri,
   getParentNode,
+  isParentUri,
   mergeTreeNodeProps,
   removeNode,
   treeMap,
@@ -226,20 +227,31 @@ export const FileTree: FC<FileTreeProps> = (props) => {
         (t) => t && mergeTreeNodeProps(t, uri, { renaming: false })
       ),
     move: async (fromUri, toUri) => {
-      if (!tree) {
+      console.log(fromUri, toUri)
+      if (!tree || fromUri === toUri) {
         return;
       }
       const fromNode = getNodeByUri(tree, fromUri);
+      if (!fromNode) {
+        return;
+      }
       let toNode = getNodeByUri(tree, toUri);
       if (toNode?.type === "file") {
         toNode = getParentNode(tree, toNode.uri);
       }
+      if (!toNode) {
+        return;
+      }
+      if (fromNode.uri === toNode.uri || isParentUri(toNode.uri, fromNode.uri)) {
+        return;
+      }
+      console.log(fromNode, toNode)
       if (fromNode && toNode) {
         await props.onMove?.(fromNode, toNode);
         let finalTree = removeNode(tree, fromUri);
         // 递归修改url
         const name = fromUri.split("/").pop();
-        const renamedUri = toUri + "/" + name;
+        const renamedUri = toNode.uri + "/" + name;
         if (toNode.children?.find((node) => node.uri === renamedUri)) {
           // todo: 错误提示
           return;
@@ -252,8 +264,9 @@ export const FileTree: FC<FileTreeProps> = (props) => {
             uri: newUri,
           };
         });
+        console.log('renamed', renamedNode)
         handleTreeChange(
-          (t) => t && addChildTo(finalTree!, toUri, renamedNode)
+          (t) => t && addChildTo(finalTree!, toNode?.uri as string, renamedNode)
         );
       }
     },

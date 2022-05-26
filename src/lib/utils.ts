@@ -125,6 +125,10 @@ export function getParentNode(tree: TreeNode, uri: string) {
   return getNodeByPath(tree, path);
 }
 
+export function isParentUri(curUri: string, parentUri: string) {
+  return curUri.startsWith(parentUri) && curUri[parentUri.length] === '/';
+}
+
 /**
  * 更新节点属性，并返回新的树
  * @param tree
