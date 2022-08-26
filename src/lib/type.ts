@@ -26,33 +26,38 @@ export interface TreeHandler {
    * 重命名节点
    * @param uri
    */
-  renameNode(uri: string): void;
+  executeToRename(uri: string): void;
 
   /**
    * 直接重命名
    * @param uri
    * @param toUri
    */
-  renameTo(uri: string, toUri: string): void;
+  executeRenameTo(uri: string, toUri: string): void;
 
   /**
    * 展开节点
    * @param uri
    */
-  expand(uri: string, expanded: boolean): void;
+  executeExpand(uri: string, expanded: boolean): void;
 
   /**
    * 删除节点
    */
-  delete(uri: string): void;
+  executeDelete(uri: string): void;
 
   /**
    * 在uri节点上创建节点
    */
-  create(uri: string, node: TreeNode): void;
+  executeCreate(uri: string, node: TreeNode): void;
 
   /**
    * 取消重命名
    */
-  cancelRename(uri: string): void;
+  executeCancelRename(uri: string): void;
+
+  /**
+   * 
+   */
+  executeDrop(fromUri: string, toUri: string): void;
 }

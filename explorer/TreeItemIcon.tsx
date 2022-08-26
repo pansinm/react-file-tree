@@ -8,7 +8,7 @@ const TreeItemIcon: FunctionComponent<{ treeNode: TreeNode }> = ({
   if (treeNode.type === "directory") {
     return <Icon type={treeNode.expanded ? "folder2-open" : "folder2"} color="orange" />;
   }
-  const isImage = /image/.test(treeNode.mime);
+  const isImage = /image/.test(treeNode.mime as string);
   return <Icon type={isImage ? 'file-image' : 'file-text-fill'} color="green"/>
 };
 

@@ -30,6 +30,7 @@ const move = (fromUri, toUri): Promise<TreeNode[]> => {
   }).then((res) => res.json());
 };
 
+
 const MENU_ID = "context-menu";
 
 export const Tree: FC = () => {
@@ -45,10 +46,10 @@ export const Tree: FC = () => {
       return;
     }
     if (data.type === "rename") {
-      handlerRef.current?.renameNode(currentNodeRef.current?.uri);
+      handlerRef.current?.executeToRename(currentNodeRef.current?.uri);
     }
     if (data.type === "delete") {
-      handlerRef.current?.delete(currentNodeRef.current?.uri);
+      handlerRef.current?.executeDelete(currentNodeRef.current?.uri);
     }
   };
 
@@ -67,8 +68,8 @@ export const Tree: FC = () => {
       <FileTree
         handlerRef={handlerRef}
         root={root}
-        onReadDir={readDir}
-        onMove={handleMove}
+        doReadDir={readDir}
+        doMove={handleMove}
         onContextMenu={(e, node) => {
           currentNodeRef.current = node;
           show(e);
@@ -81,9 +82,9 @@ export const Tree: FC = () => {
             return (
               <RenameInput
                 value={title}
-                onBlur={() => handlerRef.current?.cancelRename(treeNode.uri)}
+                onBlur={() => handlerRef.current?.executeCancelRename(treeNode.uri)}
                 onEnter={(val) => {
-                  handlerRef.current?.renameTo(
+                  handlerRef.current?.executeRenameTo(
                     treeNode.uri,
                     parts.concat(val).join("/")
                   );
