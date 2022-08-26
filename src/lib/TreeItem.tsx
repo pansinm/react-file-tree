@@ -1,4 +1,4 @@
-import React, { CSSProperties, FC } from "react";
+import React, { CSSProperties, FC, memo } from "react";
 import { TreeNode } from "./type";
 
 export interface TreeItemProps {
@@ -23,7 +23,7 @@ export interface TreeItemProps {
   treeItemRenderer: (treeNode: TreeNode) => React.ReactNode;
 }
 
-export const TreeItem: FC<TreeItemProps> = ({
+export const TreeItem: FC<TreeItemProps> = memo(({
   treeNode,
   onContextMenu,
   treeItemRenderer,
@@ -47,26 +47,29 @@ export const TreeItem: FC<TreeItemProps> = ({
         onDrop?.(e, from, to);
       }}
       onDragOver={(e) => {
-        e.currentTarget.style.backgroundColor = "#eee";
         e.preventDefault();
         onDragOver?.(e, treeNode);
+        e.currentTarget.classList.add("file-tree__tree-item--dragover");
       }}
       onDragEnter={(e) => {
-        e.currentTarget.style.backgroundColor = "#eee";
+        e.currentTarget.classList.add("file-tree__tree-item--dragover");
       }}
       onDragLeave={(e) => {
-        e.currentTarget.style.backgroundColor = "#fff";
+        e.currentTarget.classList.remove("file-tree__tree-item--dragover");
       }}
-      // onDragOver={e => console.log(e)}
       onDragStart={(e) => {
         // e.dataTransfer.dropEffect = "move";
         e.dataTransfer.setData("text/plain", treeNode.uri);
       }}
       onClick={() => onClick(treeNode)}
-      style={{ whiteSpace: 'nowrap',...style, boxSizing: 'border-box', paddingLeft: indent + indentUnit }}
+      style={{
+        whiteSpace: "nowrap",
+        ...style,
+        paddingLeft: indent + indentUnit,
+      }}
       onContextMenu={(e) => onContextMenu?.(e, treeNode)}
     >
       {treeItemRenderer(treeNode)}
     </div>
   );
-};
+});

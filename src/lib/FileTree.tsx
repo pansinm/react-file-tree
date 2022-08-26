@@ -6,11 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  AutoSizer,
-  List,
-  ListRowProps,
-} from "react-virtualized";
+import { AutoSizer, List, ListRowProps } from "react-virtualized";
 import { TreeItem } from "./TreeItem";
 import { PromiseOrNot, TreeHandler, TreeNode } from "./type";
 import useEvent from "./useEvent";
@@ -80,12 +76,12 @@ export interface FileTreeProps {
     toNode: TreeNode,
     tree: TreeHandler
   ) => PromiseOrNot<TreeNode[]>;
-  
+
   /**
    * 过滤特定节点，如果返回false，列表中不显示
    */
   doFilter?: (treeNode: TreeNode) => boolean;
-  
+
   onTreeItemClick?: (treeNode: TreeNode) => void;
 
   /**
@@ -220,7 +216,9 @@ export const FileTree: FC<FileTreeProps> = (props) => {
     );
   });
 
-  const items = flatTreeData(tree ? [tree] : []);
+  const items = flatTreeData(tree ? [tree] : []).filter((item) =>
+    props.doFilter ? props.doFilter(item) : true
+  );
 
   const handleTreeChange: typeof setTree = useCallback(
     (newTree) => {
@@ -339,7 +337,7 @@ export const FileTree: FC<FileTreeProps> = (props) => {
           clearTimeout(timeoutRef.current);
           // 延时一点展开目录或者收缩目录，防止误操作
           timeoutRef.current = window.setTimeout(() => {
-            handleItemExpand(node, 'expanded');
+            handleItemExpand(node, "expanded");
           }, 500);
         }}
         onDrop={handleDrop}

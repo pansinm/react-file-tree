@@ -70,6 +70,7 @@ export const Tree: FC = () => {
         root={root}
         doReadDir={readDir}
         doMove={handleMove}
+        doFilter={treeNode => treeNode.type === 'directory'}
         onContextMenu={(e, node) => {
           currentNodeRef.current = node;
           show(e);
