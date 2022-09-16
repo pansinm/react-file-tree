@@ -41,10 +41,10 @@ export const TreeItem: FC<TreeItemProps> = memo(({
       draggable={true}
       onDrop={(e) => {
         e.preventDefault();
-        e.currentTarget.style.backgroundColor = "#fff";
         const from = e.dataTransfer.getData("text/plain");
         const to = treeNode.uri;
         onDrop?.(e, from, to);
+        e.currentTarget.classList.remove("file-tree__tree-item--dragover");
       }}
       onDragOver={(e) => {
         e.preventDefault();

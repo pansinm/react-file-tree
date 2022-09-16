@@ -1,6 +1,8 @@
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const server = require("./server");
+const { pathToFileURL } = require("url");
+const express = require("express");
+const { LocalFileService, createMiddleware } = require("./server");
 
 module.exports = {
   entry: [
@@ -33,7 +35,14 @@ module.exports = {
       if (!devServer) {
         throw new Error("webpack-dev-server is not defined");
       }
-      server(devServer.app);
+      devServer.app.use(express.json());
+      devServer.app.get("/root", (req, res) => {
+        res.send({
+          uri: pathToFileURL("."),
+          async: "unload",
+        });
+      });
+      devServer.app.post("/action", createMiddleware(new LocalFileService()));
     },
   },
 

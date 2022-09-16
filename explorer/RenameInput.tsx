@@ -25,6 +25,7 @@ export default function RenameInput({
   return (
     <input
       className="file-tree__input"
+      style={{ width: '100%', flex: 1 }}
       ref={inputRef}
       value={val}
       onChange={(e) => setVal(e.target.value)}

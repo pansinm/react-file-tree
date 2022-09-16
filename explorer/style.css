@@ -1,0 +1,8 @@
+.file-tree__tree-item {
+  display: flex;
+  align-items: center;
+}
+
+.file-tree__tree-item--dragover {
+  background: #eee;
+}

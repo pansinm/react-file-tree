@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "jest",
-    "start": "webpack serve",
+    "start": "yarn tsc && webpack serve",
     "prepublishOnly": "tsc"
   },
   "repository": {
@@ -38,6 +38,7 @@
     "@babel/preset-typescript": "^7.16.0",
     "@babel/runtime": "^7.16.3",
     "@types/fs-extra": "^9.0.13",
+    "@types/mime-types": "^2.1.1",
     "@types/react": "^17.0.36",
     "@types/react-dom": "^17.0.11",
     "babel-loader": "^8.2.3",

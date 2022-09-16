@@ -1,26 +1,21 @@
 import React, {
-  FC,
+  forwardRef,
   MutableRefObject,
-  useCallback,
   useEffect,
+  useImperativeHandle,
   useRef,
-  useState,
 } from "react";
 import { AutoSizer, List, ListRowProps } from "react-virtualized";
-import { TreeItem } from "./TreeItem";
-import { PromiseOrNot, TreeHandler, TreeNode } from "./type";
+import { TreeItem, TreeItemProps } from "./TreeItem";
+import { FileService, TreeHandler, TreeNode } from "./type";
 import useEvent from "./useEvent";
+import useTree from "./useTree";
 import {
-  addChildTo,
   calcLevel,
   flatTreeData,
   getFileName,
-  getNodeByUri,
   getParentNode,
-  isParentUri,
-  mergeTreeNodeProps,
-  removeNode,
-  treeMap,
+  removeNode as _removeNode,
 } from "./utils";
 
 export interface FileTreeProps {
@@ -33,49 +28,7 @@ export interface FileTreeProps {
   /**
    * 渲染节点
    */
-  treeItemRenderer?: (treeNode: TreeNode, tree: TreeHandler) => React.ReactNode;
-
-  /**
-   * 如果传入onChange，组件变成受控组件
-   */
-  onChange?: (root?: TreeNode) => void;
-
-  /**
-   * 读取目录，返回下一层级目录结构
-   */
-  doReadDir?: (dirUri: string, tree: TreeHandler) => PromiseOrNot<TreeNode[]>;
-
-  /**
-   * 重命名节点，失败抛异常
-   */
-  doRename?: (
-    treeNode: TreeNode,
-    toUri: string,
-    tree: TreeHandler
-  ) => PromiseOrNot<void>;
-
-  /**
-   * 删除文件或目录
-   */
-  doDelete?: (treeNode: TreeNode, tree: TreeHandler) => PromiseOrNot<void>;
-
-  /**
-   * 为父节点新增子节点
-   */
-  doNew?: (
-    parentNode: TreeNode,
-    childNode: TreeNode,
-    tree: TreeHandler
-  ) => PromiseOrNot<TreeNode>;
-
-  /**
-   * 移动节点
-   */
-  doMove?: (
-    treeNode: TreeNode,
-    toNode: TreeNode,
-    tree: TreeHandler
-  ) => PromiseOrNot<TreeNode[]>;
+  treeItemRenderer?: (treeNode: TreeNode) => React.ReactNode;
 
   /**
    * 过滤特定节点，如果返回false，列表中不显示
@@ -84,15 +37,7 @@ export interface FileTreeProps {
 
   onTreeItemClick?: (treeNode: TreeNode) => void;
 
-  /**
-   * 拖拽事件
-   */
-  onDrop?: (
-    event: React.DragEvent<HTMLDivElement>,
-    fromUri: string,
-    toUri: string,
-    tree: TreeHandler
-  ) => void;
+  rootUri?: string;
 
   /**
    * 构造菜单
@@ -102,10 +47,15 @@ export interface FileTreeProps {
     treeNode: TreeNode
   ) => void;
 
+  fileService: FileService;
   /**
    * 根节点
    */
   root?: TreeNode;
+
+  onError?: (err: Error) => void;
+
+  onRootTreeChange?: (root: TreeNode | undefined) => void;
 
   /**
    * 子节点缩进尺寸
@@ -125,242 +75,141 @@ function defaultEmptyRenderer() {
   return <div className="file-tree__empty">无内容</div>;
 }
 
-function useItemExpandCallback([tree, setTree, doReadDir, treeHandler]: [
-  TreeNode | undefined,
-  React.Dispatch<React.SetStateAction<TreeNode | undefined>>,
-  FileTreeProps["doReadDir"],
-  TreeHandler
-]) {
-  return useEvent(
-    (
-      treeNode: TreeNode,
-      strategy: "toggle" | "expanded" | "collapsed" = "toggle"
-    ) => {
-      if (!tree) {
-        return;
-      }
-      const map = {
-        expanded: true,
-        collapsed: false,
-        toggle: !treeNode.expanded,
-      };
-      let expanded = map[strategy];
-      const loadAsyncChildren = async () => {
-        setTree(() =>
-          mergeTreeNodeProps(tree, treeNode.uri, {
-            async: "loading",
-          })
-        );
-        const children = await doReadDir?.(treeNode.uri, treeHandler);
-        if (children) {
-          const newTree = mergeTreeNodeProps(tree, treeNode.uri, {
-            async: "loaded",
-            expanded: true,
-            children,
-          });
-          setTree(() => newTree);
-        }
-      };
-
-      if (treeNode.type === "directory") {
-        treeNode.async === "unloaded"
-          ? loadAsyncChildren()
-          : setTree(
-              mergeTreeNodeProps(tree, treeNode.uri, {
-                expanded: expanded,
-              })
-            );
-      }
-    }
-  );
-}
-
-export const FileTree: FC<FileTreeProps> = (props) => {
-  const [tree, setTree] = useState<TreeNode>();
-  useEffect(() => {
-    setTree(props.root);
-  }, [props.root]);
-
-  const listRef = useRef<List>(null);
-  const timeoutRef = useRef(0);
-
-  const executeDrop = useEvent(async (fromUri: string, toUri: string) => {
-    clearTimeout(timeoutRef.current);
-    if (!tree) {
-      return;
-    }
-    const fromNode = getNodeByUri(tree, fromUri);
-    if (!fromNode) {
-      return;
-    }
-    let toNode = getNodeByUri(tree, toUri);
-    if (toNode?.type === "file") {
-      toNode = getParentNode(tree, toNode.uri);
-    }
-    if (!toNode) {
-      return;
-    }
-    if (fromNode.uri === toNode.uri || isParentUri(toNode.uri, fromNode.uri)) {
-      return;
-    }
-
-    const toNodeChildren = await props.doMove?.(fromNode, toNode, treeHandler);
-    let finalTree = removeNode(tree, fromUri);
-    handleTreeChange(
-      (t) =>
-        t &&
-        mergeTreeNodeProps(finalTree!, toNode?.uri as string, {
-          expanded: true,
-          children: toNodeChildren,
-        })
-    );
-  });
-
-  const items = flatTreeData(tree ? [tree] : []).filter((item) =>
-    props.doFilter ? props.doFilter(item) : true
-  );
-
-  const handleTreeChange: typeof setTree = useCallback(
-    (newTree) => {
-      if (props.onChange) {
-        const finalTree =
-          typeof newTree === "function" ? newTree(tree) : newTree;
-        props.onChange(finalTree);
+export const FileTree = forwardRef<
+  ReturnType<typeof useTree>["1"],
+  FileTreeProps
+>(
+  (
+    {
+      rootUri,
+      fileService,
+      emptyRenderer,
+      treeItemRenderer,
+      onError,
+      doFilter,
+      indent,
+      rowHeight,
+      indentUnit,
+      onContextMenu,
+      onRootTreeChange,
+      onTreeItemClick,
+    },
+    ref
+  ) => {
+    const [tree, handler] = useTree(fileService, onError);
+    // 初始化tree
+    useEffect(() => {
+      if (!rootUri) {
+        handler.setRootNode(undefined);
+        onRootTreeChange?.(undefined);
       } else {
-        setTree(newTree);
+        fileService
+          .read(rootUri)
+          .then((treeNode) => {
+            handler?.setRootNode(treeNode);
+            onRootTreeChange?.(treeNode);
+          })
+          .catch(onError);
       }
-    },
-    [setTree, props.onChange]
-  );
+    }, [rootUri]);
 
-  const treeHandler: TreeHandler = {
-    executeCreate: async (uri, node) => {
-      if (!tree) {
+    const items = flatTreeData(tree ? [tree] : []).filter((item) =>
+      doFilter ? doFilter(item) : true
+    );
+
+    const handleClick: TreeItemProps["onClick"] = useEvent((treeNode) => {
+      if (onTreeItemClick) {
+        onTreeItemClick(treeNode);
         return;
       }
-      const parentNode = getNodeByUri(tree, uri);
-      if (!parentNode) return;
-      await props?.doNew?.(parentNode, node, treeHandler);
-      handleTreeChange((curTree) => curTree && addChildTo(curTree, uri, node));
-    },
-    executeToRename: (uri) => {
-      handleTreeChange(
-        (curTree) =>
-          curTree && mergeTreeNodeProps(curTree, uri, { renaming: true })
-      );
-    },
-    executeRenameTo: async (uri: string, toUri: string) => {
-      if (!tree) {
-        return;
+      if (treeNode.type === "directory") {
+        handler.expand(treeNode.uri, !treeNode.expanded);
       }
-      const node = getNodeByUri(tree, uri);
-      if (!node) {
-        return;
-      }
-      await props.doRename?.(node, toUri, treeHandler);
-      // 递归修改url
-      const renamedNode = treeMap(node, (item) => {
-        const newUri = item.uri.replace(uri, toUri);
-        return {
-          ...item,
-          renaming: false,
-          uri: newUri,
-        };
-      });
-      handleTreeChange((t) => mergeTreeNodeProps(tree, uri, renamedNode));
-    },
-    executeDelete: async (uri) => {
-      if (!tree) {
-        return;
-      }
-      const node = getNodeByUri(tree, uri);
-      if (!node) {
-        return;
-      }
-      await props.doDelete?.(node, treeHandler);
-      handleTreeChange((t) => t && removeNode(t, uri));
-    },
-    executeExpand: (uri, expanded) => {
-      handleTreeChange((t) => t && mergeTreeNodeProps(t, uri, { expanded }));
-    },
-    executeCancelRename: (uri) =>
-      handleTreeChange(
-        (t) => t && mergeTreeNodeProps(t, uri, { renaming: false })
-      ),
-    executeDrop,
-  };
+    });
 
-  const handleItemExpand = useItemExpandCallback([
-    tree,
-    handleTreeChange,
-    props.doReadDir,
-    treeHandler,
-  ]);
+    const itemRender = treeItemRenderer
+      ? (treeNode: TreeNode) => treeItemRenderer?.(treeNode)
+      : (treeNode: TreeNode) => <div>{getFileName(treeNode.uri)}</div>;
 
-  if (props.handlerRef) {
-    props.handlerRef.current = treeHandler;
-  }
-
-  const handleDrop = useEvent(
-    (
-      event: React.DragEvent<HTMLDivElement>,
-      fromUri: string,
-      toUri: string
-    ) => {
-      if (!props.onDrop) {
-        event.preventDefault();
-        return;
-      }
-      return props.onDrop(event, fromUri, toUri, treeHandler);
-    }
-  );
-
-  const treeItemRenderer = props.treeItemRenderer
-    ? (treeNode: TreeNode) => props.treeItemRenderer?.(treeNode, treeHandler)
-    : (treeNode: TreeNode) => <div>{getFileName(treeNode.uri)}</div>;
-
-  const rowRenderer = (params: ListRowProps) => {
-    const treeNode = items[params.index];
-    const indent = props.indent || 10;
-
-    return (
-      <TreeItem
-        key={treeNode.uri}
-        indentUnit={props.indentUnit || "px"}
-        indent={indent * calcLevel(treeNode.uri, props.root?.uri || "")}
-        style={params.style}
-        treeNode={treeNode}
-        onContextMenu={props.onContextMenu}
-        treeItemRenderer={treeItemRenderer}
-        onClick={props.onTreeItemClick || handleItemExpand}
-        onDragOver={(e, node) => {
-          clearTimeout(timeoutRef.current);
+    // 悬停时展开目录
+    const timeoutRef = useRef(0);
+    const handleDragOver: TreeItemProps["onDragOver"] = useEvent(
+      (event: React.DragEvent<HTMLDivElement>, treeNode: TreeNode) => {
+        clearTimeout(timeoutRef.current);
+        if (treeNode.type === "directory" && !treeNode.expanded) {
           // 延时一点展开目录或者收缩目录，防止误操作
           timeoutRef.current = window.setTimeout(() => {
-            handleItemExpand(node, "expanded");
+            handler.expand(treeNode.uri, true);
           }, 500);
-        }}
-        onDrop={handleDrop}
-      />
+        }
+      }
     );
-  };
 
-  return (
-    <AutoSizer>
-      {({ height, width }) => (
-        <List
-          ref={listRef}
-          className="file-tree"
-          height={height}
-          width={width}
-          overscanRowCount={30}
-          noRowsRenderer={props.emptyRenderer || defaultEmptyRenderer}
-          rowCount={items.length}
-          rowHeight={props.rowHeight || 30}
-          rowRenderer={rowRenderer}
-          // scrollToIndex={scrollToIndex}
+    // 移动文件
+    const handleDrop = useEvent(
+      async (
+        event: React.DragEvent<HTMLDivElement>,
+        fromUri: string,
+        toUri: string
+      ) => {
+        const fromNode = handler.getNode(fromUri);
+        let toNode = handler.getNode(toUri);
+        if (!fromNode || !toNode) {
+          return;
+        }
+        if (toNode.type !== "directory") {
+          toNode = getParentNode(tree, toNode.uri);
+        }
+        if (toNode?.type === "directory") {
+          handler.move(fromUri, toNode.uri);
+        }
+      }
+    );
+
+    useImperativeHandle(
+      ref,
+      () => {
+        return handler;
+      },
+      []
+    );
+
+    const rowRenderer = (params: ListRowProps) => {
+      const treeNode = items[params.index];
+      const indentNum = indent || 10;
+
+      return (
+        <TreeItem
+          key={treeNode.uri}
+          indentUnit={indentUnit || "px"}
+          indent={indentNum * calcLevel(treeNode.uri, rootUri || "")}
+          style={params.style}
+          treeNode={treeNode}
+          onContextMenu={onContextMenu}
+          treeItemRenderer={itemRender}
+          onClick={handleClick}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
         />
-      )}
-    </AutoSizer>
-  );
-};
+      );
+    };
+
+    return (
+      <AutoSizer>
+        {({ height, width }) => (
+          <List
+            className="file-tree"
+            height={height}
+            width={width}
+            overscanRowCount={30}
+            noRowsRenderer={emptyRenderer || defaultEmptyRenderer}
+            rowCount={items.length}
+            rowHeight={rowHeight || 30}
+            rowRenderer={rowRenderer}
+            // scrollToIndex={scrollToIndex}
+          />
+        )}
+      </AutoSizer>
+    );
+  }
+);

@@ -1,22 +1,30 @@
 export type TreeNodeType = "directory" | "file";
 
-export type Async = "unloaded" | "loading" | "loaded";
+export type Async = "unload" | "loading" | "loaded";
+
+export interface FileService {
+  read(uri: string): Promise<TreeNode>;
+  readdir(uri: string): Promise<TreeNode[]>;
+  move(uri: string, targetDirUri: string): Promise<TreeNode>;
+  rename(uri: string, name: string): Promise<TreeNode>;
+  create(dirUri: string, node: TreeNode): Promise<TreeNode>
+  remove(uri: string): Promise<void>;
+}
+
 
 export interface TreeNode {
   type: TreeNodeType;
   uri: string;
   mime?: string;
   expanded?: boolean;
-
-  /**
-   * 正在重命名
-   */
-  renaming?: boolean;
   /**
    * 异步更新节点
    */
   async?: Async;
   children?: TreeNode[];
+
+  // other props
+  [x: string]: any;
 }
 
 export type PromiseOrNot<T> = Promise<T> | T;

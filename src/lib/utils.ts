@@ -1,4 +1,3 @@
-import { Children } from "react";
 import { TreeNode } from "./type";
 
 /**
@@ -102,7 +101,10 @@ function getNodeByPath(tree: TreeNode, path: number[]): TreeNode {
  * @param uri
  * @returns
  */
-export function getNodeByUri(tree: TreeNode, uri: string) {
+export function getNodeByUri(tree: TreeNode | undefined, uri: string) {
+  if (!tree) {
+    return undefined;
+  }
   const path = locateTreeNode(tree, uri);
   if (!path) {
     return null;
@@ -112,11 +114,14 @@ export function getNodeByUri(tree: TreeNode, uri: string) {
 
 /**
  * 获取父节点
- * @param tree 
- * @param uri 
- * @returns 
+ * @param tree
+ * @param uri
+ * @returns
  */
-export function getParentNode(tree: TreeNode, uri: string) {
+export function getParentNode(tree: TreeNode | undefined, uri: string) {
+  if (!tree) {
+    return null;
+  }
   const path = locateTreeNode(tree, uri);
   if (!path) {
     return null;
@@ -126,7 +131,7 @@ export function getParentNode(tree: TreeNode, uri: string) {
 }
 
 export function isParentUri(curUri: string, parentUri: string) {
-  return curUri.startsWith(parentUri) && curUri[parentUri.length] === '/';
+  return curUri.startsWith(parentUri) && curUri[parentUri.length] === "/";
 }
 
 /**
@@ -137,10 +142,13 @@ export function isParentUri(curUri: string, parentUri: string) {
  * @returns
  */
 export function mergeTreeNodeProps(
-  tree: TreeNode,
+  tree: TreeNode | undefined,
   uri: string,
   pairs: Partial<TreeNode>
-): TreeNode {
+): TreeNode | undefined {
+  if (!tree) {
+    return undefined;
+  }
   const path = locateTreeNode(tree, uri);
   if (!path) {
     return tree;
@@ -172,7 +180,10 @@ export function mergeTreeNodeProps(
  * @param node
  * @returns
  */
-export function addChildTo(tree: TreeNode, parentUri: string, node: TreeNode) {
+export function addChildTo(tree: TreeNode | undefined, parentUri: string, node: TreeNode) {
+  if (!tree) {
+    return undefined;
+  }
   const path = locateTreeNode(tree, parentUri);
   if (!path) {
     return tree;
@@ -192,7 +203,10 @@ export function addChildTo(tree: TreeNode, parentUri: string, node: TreeNode) {
  * @param uri
  * @returns
  */
-export function removeNode(tree: TreeNode, uri: string) {
+export function removeNode(tree: TreeNode | undefined, uri: string) {
+  if (!tree) {
+    return undefined;
+  }
   const path = locateTreeNode(tree, uri);
   if (!path) {
     return tree;
@@ -220,10 +234,42 @@ export function treeMap(
   fn: (treeNode: TreeNode) => TreeNode
 ): TreeNode {
   if (tree.children) {
-    return fn({
-      ...tree,
-      children: tree.children.map((node) => fn(node)),
+    let childrenChnaged = false;
+    const newChildren = tree.children.map((node) => {
+      const newNode = treeMap(node, fn);
+      if (newNode !== node) {
+        childrenChnaged = true;
+      }
+      return newNode;
     });
+    if (childrenChnaged) {
+      return fn({
+        ...tree,
+        children: newChildren,
+      });
+    }
   }
   return fn(tree);
 }
+
+export const replaceTreeNode = (tree: TreeNode | undefined, uri: string, newTreeNode: TreeNode) => {
+  if (!tree) {
+    return undefined;
+  }
+  return treeMap(tree, (treeNode) => {
+    if (treeNode.uri === uri) {
+      return newTreeNode;
+    }
+    return treeNode;
+  });
+}
+
+type Assert = (condition: unknown, message?: string) => asserts condition;
+export const assert: Assert = (
+  condition: unknown,
+  msg?: string
+): asserts condition => {
+  if (!condition) {
+    throw new Error(msg);
+  }
+};

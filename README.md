@@ -1,5 +1,7 @@
 # react-file-tree
 
+开发中...
+
 ![](./docs/appearence.png)
 
 ## Install
@@ -9,8 +11,21 @@ yarn add @sinm/react-file-tree
 ```
 
 ## Usage
+```tsx
+import { FileTree } from '@sinm/react-file-tree';
 
-参考[example/Tree.tsx](example/Tree.tsx)
+<FileTree 
+   rootUri=""
+   fileService={fileService}
+   onItemClick={(treeNode, tree) => {
+
+   }}
+   onDrop={(fromNode, toNode, tree) => {
+
+   }}
+/>
+```
+
 
 ## Demo
 
