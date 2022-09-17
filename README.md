@@ -14,14 +14,14 @@ yarn add @sinm/react-file-tree
 ```tsx
 import { FileTree } from '@sinm/react-file-tree';
 
+const ref = useRef();
+
 <FileTree 
    rootUri=""
+   ref={ref}
    fileService={fileService}
-   onItemClick={(treeNode, tree) => {
-
-   }}
-   onDrop={(fromNode, toNode, tree) => {
-
+   onItemClick={(treeNode) => {
+      // ref.current.expand(treeNode.uri, !treeNode.expanded);
    }}
 />
 ```
