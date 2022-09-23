@@ -39,6 +39,8 @@ export interface FileTreeProps {
 
   rootUri?: string;
 
+  onDrop?(fromUri: string, toDirUri: string): void;
+
   /**
    * 构造菜单
    */
@@ -91,6 +93,7 @@ export const FileTree = forwardRef<
       rowHeight,
       indentUnit,
       onContextMenu,
+      onDrop,
       onRootTreeChange,
       onTreeItemClick,
     },
@@ -152,6 +155,9 @@ export const FileTree = forwardRef<
         fromUri: string,
         toUri: string
       ) => {
+        if (fromUri === toUri) {
+          return;
+        }
         const fromNode = handler.getNode(fromUri);
         let toNode = handler.getNode(toUri);
         if (!fromNode || !toNode) {
@@ -161,7 +167,11 @@ export const FileTree = forwardRef<
           toNode = getParentNode(tree, toNode.uri);
         }
         if (toNode?.type === "directory") {
-          handler.move(fromUri, toNode.uri);
+          if (onDrop) {
+            onDrop(fromUri, toNode.uri);
+          } else {
+            handler.move(fromUri, toNode.uri);
+          }
         }
       }
     );
