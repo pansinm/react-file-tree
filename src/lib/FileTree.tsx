@@ -38,6 +38,8 @@ export interface FileTreeProps {
   onTreeItemClick?: (treeNode: TreeNode) => void;
 
   rootUri?: string;
+  
+  draggable?: boolean;
 
   onDrop?(fromUri: string, toDirUri: string): void;
 
@@ -88,6 +90,7 @@ export const FileTree = forwardRef<
       emptyRenderer,
       treeItemRenderer,
       onError,
+      draggable,
       doFilter,
       indent,
       rowHeight,
@@ -190,6 +193,7 @@ export const FileTree = forwardRef<
 
       return (
         <TreeItem
+          draggable={draggable}
           key={treeNode.uri}
           indentUnit={indentUnit || "px"}
           indent={indentNum * calcLevel(treeNode.uri, rootUri || "")}

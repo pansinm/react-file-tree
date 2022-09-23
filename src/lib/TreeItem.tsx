@@ -18,6 +18,7 @@ export interface TreeItemProps {
     fromUri: string,
     toUri: string
   ) => void;
+  draggable?: boolean;
   onClick: (treeNode: TreeNode) => void;
   treeNode: TreeNode;
   treeItemRenderer: (treeNode: TreeNode) => React.ReactNode;
@@ -30,6 +31,7 @@ export const TreeItem: FC<TreeItemProps> = memo(({
   indent,
   indentUnit,
   style,
+  draggable,
   onClick,
   onDragOver,
   onDrop,
@@ -38,7 +40,7 @@ export const TreeItem: FC<TreeItemProps> = memo(({
     <div
       className="file-tree__tree-item"
       title={treeNode.uri}
-      draggable={true}
+      draggable={draggable}
       onDrop={(e) => {
         e.preventDefault();
         const from = e.dataTransfer.getData("text/plain");
