@@ -5,7 +5,7 @@ import { TreeNode } from "./type";
  * @param treeData
  * @returns
  */
-export function flatTreeData(treeData: TreeNode[]): TreeNode[] {
+export function flatTreeData(treeData: TreeNode[], sorter?: (treeNodes: TreeNode[]) => TreeNode[]): TreeNode[] {
   if (!treeData) {
     return [];
   }
@@ -16,20 +16,13 @@ export function flatTreeData(treeData: TreeNode[]): TreeNode[] {
   };
   // 按字符串排序，目录在前面
   let list: TreeNode[] = [];
-  [...treeData]
-    .sort((a, b) => {
-      const val = fileTypeVal[a.type] - fileTypeVal[b.type];
-      if (val === 0) {
-        return a.uri.localeCompare(b.uri);
-      }
-      return val;
-    })
-    .forEach((item) => {
-      list.push(item);
-      if (item.expanded && item.children) {
-        list = list.concat(flatTreeData(item.children));
-      }
-    });
+  let sorted = sorter ? sorter(treeData) : [...treeData];
+  sorted.forEach((item) => {
+    list.push(item);
+    if (item.expanded && item.children) {
+      list = list.concat(flatTreeData(item.children, sorter));
+    }
+  });
   return list;
 }
 
@@ -180,7 +173,11 @@ export function mergeTreeNodeProps(
  * @param node
  * @returns
  */
-export function addChildTo(tree: TreeNode | undefined, parentUri: string, node: TreeNode) {
+export function addChildTo(
+  tree: TreeNode | undefined,
+  parentUri: string,
+  node: TreeNode
+) {
   if (!tree) {
     return undefined;
   }
@@ -252,7 +249,11 @@ export function treeMap(
   return fn(tree);
 }
 
-export const replaceTreeNode = (tree: TreeNode | undefined, uri: string, newTreeNode: TreeNode) => {
+export const replaceTreeNode = (
+  tree: TreeNode | undefined,
+  uri: string,
+  newTreeNode: TreeNode
+) => {
   if (!tree) {
     return undefined;
   }
@@ -262,7 +263,7 @@ export const replaceTreeNode = (tree: TreeNode | undefined, uri: string, newTree
     }
     return treeNode;
   });
-}
+};
 
 type Assert = (condition: unknown, message?: string) => asserts condition;
 export const assert: Assert = (

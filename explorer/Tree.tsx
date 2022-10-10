@@ -1,13 +1,8 @@
 import React, { FC, useEffect, useRef, useState } from "react";
-import { TreeNode } from "../src/lib/type";
+import { TreeNode } from "../src/lib";
 import { FileTree } from "../src/lib";
 
-import {
-  Menu,
-  Item,
-  Separator,
-  useContextMenu,
-} from "react-contexify";
+import { Menu, Item, Separator, useContextMenu } from "react-contexify";
 import "react-contexify/dist/ReactContexify.css";
 import TreeItemIcon from "./TreeItemIcon";
 import RenameInput from "./RenameInput";
@@ -20,6 +15,11 @@ const fileService = new RemoteFileService();
 const MENU_ID = "context-menu";
 
 type TreeHandler = React.ElementRef<typeof FileTree>;
+
+const sortByType = (treeNodes: TreeNode[]) =>
+  [...treeNodes].sort((a, b) => {
+    return +(b.type === "directory") - +(a.type === "directory");
+  });
 
 export const Tree: FC = () => {
   const [root, setRoot] = useState<string>("");
@@ -65,6 +65,7 @@ export const Tree: FC = () => {
             treeRef.current?.expand(root.uri, true);
           }
         }}
+        treeItemSort={sortByType}
         treeItemRenderer={(treeNode) => {
           const parts = treeNode.uri.split("/");
           const title = decodeURIComponent(parts.pop() || "");

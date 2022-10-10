@@ -19,7 +19,6 @@ import {
 } from "./utils";
 
 export interface FileTreeProps {
-  handlerRef?: MutableRefObject<TreeHandler | null>;
   /**
    * 无数据时展示
    */
@@ -35,30 +34,54 @@ export interface FileTreeProps {
    */
   doFilter?: (treeNode: TreeNode) => boolean;
 
+  /**
+   * 点击条目
+   */
   onTreeItemClick?: (treeNode: TreeNode) => void;
 
+  /**
+   * 打开的目录URI
+   */
   rootUri?: string;
-  
+
+  /**
+   * 是否支持拖拽
+   */
   draggable?: boolean;
 
+  /**
+   * 拖拽
+   * @param fromUri 
+   * @param toDirUri 
+   */
   onDrop?(fromUri: string, toDirUri: string): void;
 
   /**
-   * 构造菜单
+   * 右键回调
    */
   onContextMenu?: (
     event: React.MouseEvent<HTMLDivElement>,
     treeNode: TreeNode
   ) => void;
 
-  fileService: FileService;
   /**
-   * 根节点
+   * 文件服务，
    */
-  root?: TreeNode;
+  fileService: FileService;
 
+  /**
+   * 出错时回调
+   */
   onError?: (err: Error) => void;
 
+  /**
+   * 目录内文件排序方法
+   */
+  treeItemSort?: (treeNodes: TreeNode[]) => TreeNode[];
+
+  /**
+   * 根目录变化回调
+   */
   onRootTreeChange?: (root: TreeNode | undefined) => void;
 
   /**
@@ -89,6 +112,7 @@ export const FileTree = forwardRef<
       fileService,
       emptyRenderer,
       treeItemRenderer,
+      treeItemSort,
       onError,
       draggable,
       doFilter,
@@ -119,8 +143,8 @@ export const FileTree = forwardRef<
       }
     }, [rootUri]);
 
-    const items = flatTreeData(tree ? [tree] : []).filter((item) =>
-      doFilter ? doFilter(item) : true
+    const items = flatTreeData(tree ? [tree] : [], treeItemSort).filter(
+      (item) => (doFilter ? doFilter(item) : true)
     );
 
     const handleClick: TreeItemProps["onClick"] = useEvent((treeNode) => {
