@@ -13,6 +13,8 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 lib/*
 server/*
 
+src/file-icons
+
 # Runtime data
 pids
 *.pid

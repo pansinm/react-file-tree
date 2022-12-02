@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "jest",
+    "update-assets": "node scripts/update-assets.mjs",
     "start": "yarn tsc && webpack serve",
     "prepublishOnly": "tsc"
   },
