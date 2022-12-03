@@ -3,7 +3,6 @@ import orderBy from "lodash/orderBy";
 import { FileTree, FileTreeProps, TreeNode, utils } from "../src";
 import FileItemWithFileIcon from "../src/FileItemWithFileIcon";
 
-
 const sorter = (treeNodes: TreeNode[]) =>
   orderBy(
     treeNodes,
