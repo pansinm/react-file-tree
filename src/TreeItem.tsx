@@ -19,7 +19,7 @@ export interface TreeItemProps {
     toUri: string
   ) => void;
   draggable?: boolean;
-  onClick: (treeNode: TreeNode) => void;
+  onClick?: (treeNode: TreeNode) => void;
   treeNode: TreeNode;
   treeItemRenderer: (treeNode: TreeNode) => React.ReactNode;
 }
@@ -63,9 +63,10 @@ export const TreeItem: FC<TreeItemProps> = memo(({
         // e.dataTransfer.dropEffect = "move";
         e.dataTransfer.setData("text/plain", treeNode.uri);
       }}
-      onClick={() => onClick(treeNode)}
+      onClick={() => onClick?.(treeNode)}
       style={{
         whiteSpace: "nowrap",
+        boxSizing: 'border-box',
         ...style,
         paddingLeft: indent + indentUnit,
       }}

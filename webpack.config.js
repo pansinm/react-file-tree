@@ -1,8 +1,9 @@
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const { pathToFileURL } = require("url");
 const express = require("express");
-const { LocalFileService, createMiddleware } = require("./server");
+const fs = require("fs/promises");
+const path = require("path");
+const {getTreeNode} = require('./lib/node')
 
 module.exports = {
   entry: [
@@ -36,13 +37,10 @@ module.exports = {
         throw new Error("webpack-dev-server is not defined");
       }
       devServer.app.use(express.json());
-      devServer.app.get("/root", (req, res) => {
-        res.send({
-          uri: pathToFileURL("."),
-          async: "unload",
-        });
+      devServer.app.get("/root", async (req, res) => {
+        const root = path.resolve(".");
+        res.send(await getTreeNode('.'));
       });
-      devServer.app.post("/action", createMiddleware(new LocalFileService()));
     },
   },
 

@@ -1,14 +1,15 @@
 {
   "name": "@sinm/react-file-tree",
   "description": "react file tree ",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "main": "lib/index.js",
   "directories": {
     "example": "example"
   },
   "scripts": {
     "test": "jest",
-    "update-assets": "node scripts/update-assets.mjs",
+    "prepare": "cp -r github-file-icons/src/file-icons/db github-file-icons/src/file-icons/*.ts src/file-icons",
+    "build": "",
     "start": "yarn tsc && webpack serve",
     "prepublishOnly": "tsc"
   },
@@ -38,6 +39,7 @@
     "@babel/preset-react": "^7.16.0",
     "@babel/runtime": "^7.16.3",
     "@types/fs-extra": "^9.0.13",
+    "@types/lodash": "^4.14.191",
     "@types/mime-types": "^2.1.1",
     "@types/react": "^17.0.36",
     "@types/react-dom": "^17.0.11",
@@ -45,6 +47,7 @@
     "css-loader": "^6.5.1",
     "fs-extra": "^10.1.0",
     "html-webpack-plugin": "^5.5.0",
+    "lodash": "^4.17.21",
     "mime-types": "^2.1.35",
     "react": "^17.0.2",
     "react-contexify": "^5.0.0",
@@ -59,8 +62,10 @@
   },
   "files": [
     "lib",
-    "server",
+    "*.css",
+    "assets",
     "package.json",
+    "github-file-icons/src/file-icons",
     "README.md"
   ]
 }

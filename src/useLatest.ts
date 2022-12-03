@@ -1,7 +1,7 @@
-import { useCallback, useLayoutEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 
-function useEvent<T extends Function>(handler: T) {
+function useLatest<T extends Function>(handler: T) {
   const handlerRef = useRef<T | null>(null);
 
   handlerRef.current = handler;
@@ -12,4 +12,4 @@ function useEvent<T extends Function>(handler: T) {
   }, []) as unknown as T;
 }
 
-export default useEvent;
+export default useLatest;

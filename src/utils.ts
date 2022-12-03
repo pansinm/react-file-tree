@@ -43,7 +43,7 @@ export function calcLevel(uri: string, rootUri: string) {
  * @returns
  */
 export function getFileName(uri: string) {
-  return uri.split("/").pop();
+  return decodeURIComponent(uri.split("/").pop() || '');
 }
 
 /**
@@ -52,7 +52,7 @@ export function getFileName(uri: string) {
  * @param uri
  * @returns
  */
-export function locateTreeNode(tree: TreeNode, uri: string) {
+export function getTreeNodePath(tree: TreeNode, uri: string) {
   if (tree.uri === uri) {
     return [];
   }
@@ -62,7 +62,7 @@ export function locateTreeNode(tree: TreeNode, uri: string) {
       path.push(index);
       return true;
     }
-    const subPath = locateTreeNode(item, uri);
+    const subPath = getTreeNodePath(item, uri);
     if (subPath) {
       path.push(index);
       path = path.concat(subPath);
@@ -80,12 +80,12 @@ export function locateTreeNode(tree: TreeNode, uri: string) {
  * @param path
  * @returns
  */
-function getNodeByPath(tree: TreeNode, path: number[]): TreeNode {
+function getTreeNodeByPath(tree: TreeNode, path: number[]): TreeNode {
   if (!path.length) {
     return tree;
   }
   const [first, ...rest] = path;
-  return getNodeByPath(tree?.children?.[first] as TreeNode, rest);
+  return getTreeNodeByPath(tree?.children?.[first] as TreeNode, rest);
 }
 
 /**
@@ -94,15 +94,15 @@ function getNodeByPath(tree: TreeNode, path: number[]): TreeNode {
  * @param uri
  * @returns
  */
-export function getNodeByUri(tree: TreeNode | undefined, uri: string) {
+export function getTreeNodeByUri(tree: TreeNode | undefined, uri: string) {
   if (!tree) {
     return undefined;
   }
-  const path = locateTreeNode(tree, uri);
+  const path = getTreeNodePath(tree, uri);
   if (!path) {
     return null;
   }
-  return getNodeByPath(tree, path);
+  return getTreeNodeByPath(tree, path);
 }
 
 /**
@@ -115,12 +115,12 @@ export function getParentNode(tree: TreeNode | undefined, uri: string) {
   if (!tree) {
     return null;
   }
-  const path = locateTreeNode(tree, uri);
+  const path = getTreeNodePath(tree, uri);
   if (!path) {
     return null;
   }
   path.pop();
-  return getNodeByPath(tree, path);
+  return getTreeNodeByPath(tree, path);
 }
 
 export function isParentUri(curUri: string, parentUri: string) {
@@ -131,30 +131,30 @@ export function isParentUri(curUri: string, parentUri: string) {
  * 更新节点属性，并返回新的树
  * @param tree
  * @param uri
- * @param pairs
+ * @param newProps
  * @returns
  */
-export function mergeTreeNodeProps(
+export function assignTreeNode(
   tree: TreeNode | undefined,
   uri: string,
-  pairs: Partial<TreeNode>
+  newProps: Partial<TreeNode>
 ): TreeNode | undefined {
   if (!tree) {
     return undefined;
   }
-  const path = locateTreeNode(tree, uri);
+  const path = getTreeNodePath(tree, uri);
   if (!path) {
     return tree;
   }
-  let node = getNodeByPath(tree, path);
+  let node = getTreeNodeByPath(tree, path);
   let newNode = {
     ...node,
-    ...pairs,
+    ...newProps,
   };
 
   let index = path.pop() as number;
   while (index >= 0) {
-    let parent = getNodeByPath(tree, path);
+    let parent = getTreeNodeByPath(tree, path);
     const children = [...parent.children!];
     children.splice(index, 1, newNode);
     newNode = {
@@ -173,7 +173,7 @@ export function mergeTreeNodeProps(
  * @param node
  * @returns
  */
-export function addChildTo(
+export function appendTreeNode(
   tree: TreeNode | undefined,
   parentUri: string,
   node: TreeNode
@@ -181,17 +181,17 @@ export function addChildTo(
   if (!tree) {
     return undefined;
   }
-  const path = locateTreeNode(tree, parentUri);
+  const path = getTreeNodePath(tree, parentUri);
   if (!path) {
     return tree;
   }
-  let locatedNode = getNodeByPath(tree, path);
+  let locatedNode = getTreeNodeByPath(tree, path);
   if (locatedNode?.children?.find((n) => n.uri === node.uri)) {
     console.warn("重复uri");
     return tree;
   }
   const children = [...(locatedNode.children || []), node];
-  return mergeTreeNodeProps(tree, parentUri, { children });
+  return assignTreeNode(tree, parentUri, { children });
 }
 
 /**
@@ -200,11 +200,11 @@ export function addChildTo(
  * @param uri
  * @returns
  */
-export function removeNode(tree: TreeNode | undefined, uri: string) {
+export function removeTreeNode(tree: TreeNode | undefined, uri: string) {
   if (!tree) {
     return undefined;
   }
-  const path = locateTreeNode(tree, uri);
+  const path = getTreeNodePath(tree, uri);
   if (!path) {
     return tree;
   }
@@ -214,10 +214,10 @@ export function removeNode(tree: TreeNode | undefined, uri: string) {
   }
   const index = path.pop() as number;
   const parentPath = path;
-  const parent = getNodeByPath(tree, parentPath);
+  const parent = getTreeNodeByPath(tree, parentPath);
   const children = [...(parent.children || [])];
   children.splice(index, 1);
-  return mergeTreeNodeProps(tree, parent.uri, { children });
+  return assignTreeNode(tree, parent.uri, { children });
 }
 
 /**
@@ -231,15 +231,15 @@ export function treeMap(
   fn: (treeNode: TreeNode) => TreeNode
 ): TreeNode {
   if (tree.children) {
-    let childrenChnaged = false;
+    let childrenChanged = false;
     const newChildren = tree.children.map((node) => {
       const newNode = treeMap(node, fn);
       if (newNode !== node) {
-        childrenChnaged = true;
+        childrenChanged = true;
       }
       return newNode;
     });
-    if (childrenChnaged) {
+    if (childrenChanged) {
       return fn({
         ...tree,
         children: newChildren,

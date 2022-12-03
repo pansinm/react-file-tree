@@ -6,3 +6,7 @@
 .file-tree__tree-item--dragover {
   background: #eee;
 }
+
+.file-tree__icon {
+  margin-right: 5px;
+}

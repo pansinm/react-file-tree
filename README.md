@@ -1,8 +1,7 @@
 # react-file-tree
 
-开发中...
 
-![](./docs/appearence.png)
+![](./assets/appearence.png)
 
 ## Install
 
@@ -11,103 +10,71 @@ yarn add @sinm/react-file-tree
 ```
 
 ## Usage
+
+1. Render tree
 ```tsx
 import { FileTree } from '@sinm/react-file-tree';
+// default style
+import '@sinm/react-file-tree/styles.css';
 
-const ref = useRef();
+const [tree, setTree] = useState(defaultTree);
 
-<FileTree 
-   rootUri=""
-   ref={ref}
-   fileService={fileService}
-   onItemClick={(treeNode) => {
-      // ref.current.expand(treeNode.uri, !treeNode.expanded);
-   }}
+<FileTree tree={tree}>
+```
+
+2. Toggle expanded
+
+```tsx
+const toggleExpanded: FileTreeProps["onItemClick"] = (treeNode) => {
+    setTree((tree) =>
+        utils.assignTreeNode(tree, treeNode.uri, {
+        expanded: !treeNode.expanded,
+        })
+    );
+};
+
+<FileTree
+    tree={tree}
+    onItemClick={toggleExpanded}
 />
 ```
 
-## Props
+3. use [github-file-icons](https://github.com/homerchen19/github-file-icons)
 ```tsx
-export interface FileTreeProps {
-  /**
-   * 无数据时展示
-   */
-  emptyRenderer?: () => React.ReactElement;
+import FileItemWithFileIcon from '@sinm/react-file-tree/lib/FileItemWithFileIcon';
+import FileItemWithFileIcon from '@sinm/react-file-tree/icons.css';
+const itemRenderer = (treeNode: TreeNode) => <FileItemWithFileIcon treeNode={treeNode} />
 
-  /**
-   * 渲染节点
-   */
-  treeItemRenderer?: (treeNode: TreeNode) => React.ReactNode;
-
-  /**
-   * 过滤特定节点，如果返回false，列表中不显示
-   */
-  doFilter?: (treeNode: TreeNode) => boolean;
-
-  /**
-   * 点击条目
-   */
-  onTreeItemClick?: (treeNode: TreeNode) => void;
-
-  /**
-   * 打开的目录URI
-   */
-  rootUri?: string;
-
-  /**
-   * 是否支持拖拽
-   */
-  draggable?: boolean;
-
-  /**
-   * 拖拽
-   * @param fromUri 
-   * @param toDirUri 
-   */
-  onDrop?(fromUri: string, toDirUri: string): void;
-
-  /**
-   * 右键回调
-   */
-  onContextMenu?: (
-    event: React.MouseEvent<HTMLDivElement>,
-    treeNode: TreeNode
-  ) => void;
-
-  /**
-   * 文件服务，
-   */
-  fileService: FileService;
-
-  /**
-   * 出错时回调
-   */
-  onError?: (err: Error) => void;
-
-  /**
-   * 目录内文件排序方法
-   */
-  treeItemSort?: (treeNodes: TreeNode[]) => TreeNode[];
-
-  /**
-   * 根目录变化回调
-   */
-  onRootTreeChange?: (root: TreeNode | undefined) => void;
-
-  /**
-   * 子节点缩进尺寸
-   */
-  indent?: number;
-  /**
-   *  节点高度，默认30
-   */
-  rowHeight?: number;
-  /**
-   * 缩进单位，默认px
-   */
-  indentUnit?: string;
-}
+<FileTree tree={tree} itemRenderer={itemRenderer} />
 ```
+
+4. Load tree from server
+
+```tsx
+// backend
+import {getTreeNode} from '@sinm/react-file-tree/lib/node';
+
+app.get('/root', async (req, res, next) => {
+    try {
+        const tree = await getTreeNode('.'); // build tree for current directory 
+        res.send(tree);
+    } catch(err) {
+        next(err)
+    }
+})
+
+// frontend
+useEffect(() => {
+    fetch("/root")
+        .then((res) => res.json())
+        // expand root node
+        .then((tree) => Object.assign(tree, { expanded: true }))
+        .then(setTree);
+}, []);
+
+```
+
+
 
 ## Demo
 
@@ -115,5 +82,6 @@ export interface FileTreeProps {
 git clone https://github.com/pansinm/react-file-tree.git
 cd react-file-tree
 yarn
+git submodule update --init --recursive
 yarn start
 ```
