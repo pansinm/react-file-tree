@@ -15,6 +15,9 @@ const TreeItemIcon: FunctionComponent<{ treeNode: TreeNode }> = ({
   } else {
     const icon = db.matchName(fileName, false);
     className = getClassWithColor(fileName, icon) as string;
+    if (!className) {
+      className = 'file-icon light-blue'
+    }
   }
   return <i style={{marginRight: 5}} className={'icon ' + className}></i>
 };

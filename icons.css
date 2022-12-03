@@ -26,3 +26,9 @@
   content: "\f07c";
   font-size: 16px;
 }
+
+.file-icon::before {
+  font-family: FontAwesome;
+  content: '\f15b';
+  font-size: 16px;
+}

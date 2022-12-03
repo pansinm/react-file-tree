@@ -14,7 +14,7 @@ class LocalFileService implements FileService {
     return {
       uri: url.pathToFileURL(aPath).toString(),
       mime: stat.isFile() ? mimetypes.lookup(path.basename(aPath)) : false,
-      type: stat.isFile() ? "file" : "directory",
+      type: stat.isDirectory() ? "directory" : "file",
       async: stat.isDirectory() ? "unload" : undefined,
     } as TreeNode;
   }
@@ -30,7 +30,7 @@ class LocalFileService implements FileService {
       return {
         uri: url.pathToFileURL(path.join(dir, file.name)).toString(),
         mime: file.isFile() ? mimetypes.lookup(file.name) : false,
-        type: file.isFile() ? "file" : "directory",
+        type: file.isDirectory() ? "directory" : "file",
         async: file.isDirectory() ? "unload" : undefined,
       } as TreeNode;
     });
