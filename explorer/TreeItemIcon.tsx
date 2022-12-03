@@ -1,15 +1,22 @@
 import React, { FunctionComponent } from "react";
 import { TreeNode } from "../src/lib/type";
-import Icon from "./Icon";
+import {getClass, db, getClassWithColor } from '../github-file-icons/src/file-icons/file-icons'
+
+import '../icons.css'
 
 const TreeItemIcon: FunctionComponent<{ treeNode: TreeNode }> = ({
   treeNode,
 }) => {
-  if (treeNode.type === "directory") {
-    return <Icon type={treeNode.expanded ? "folder2-open" : "folder2"} color="orange" />;
+  const fileName = treeNode.uri.split('/').pop()!
+  let className = '';
+  if (treeNode.type === 'directory') {
+    className = treeNode.expanded ? 'folder-icon-open' : 'folder-icon';
+    className += ' light-folder-color'
+  } else {
+    const icon = db.matchName(fileName, false);
+    className = getClassWithColor(fileName, icon) as string;
   }
-  const isImage = /image/.test(treeNode.mime as string);
-  return <Icon type={isImage ? 'file-image' : 'file-text-fill'} color="green"/>
+  return <i style={{marginRight: 5}} className={'icon ' + className}></i>
 };
 
 export default TreeItemIcon;

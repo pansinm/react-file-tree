@@ -13,6 +13,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 lib/*
 server/*
 
+output/
 src/file-icons
 
 # Runtime data

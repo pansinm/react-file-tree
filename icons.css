@@ -1,0 +1,28 @@
+@import "./github-file-icons/src/file-icons/css/fonts.css";
+@import "./github-file-icons/src/file-icons/css/colors.css";
+@import "./github-file-icons/src/file-icons/css/icons.css";
+
+.database-icon::before {
+  left: 2px;
+}
+
+.dark {
+  filter: brightness(125%) contrast(150%) drop-shadow(0 0 0 #fff)
+    drop-shadow(1px 1px 1px #444);
+}
+
+.light-folder-color {
+  color: rgb(108, 181, 254);
+}
+
+.folder-icon::before {
+  font-family: FontAwesome;
+  content: "\f07b";
+  font-size: 16px;
+}
+
+.folder-icon-open::before {
+  font-family: FontAwesome;
+  content: "\f07c";
+  font-size: 16px;
+}
