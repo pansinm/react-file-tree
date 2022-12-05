@@ -8,10 +8,10 @@
   },
   "scripts": {
     "test": "jest",
-    "prepare": "cp -r github-file-icons/src/file-icons/db github-file-icons/src/file-icons/*.ts src/file-icons",
-    "build": "",
+    "prepare": "git submodule update --init --recursive && cp -r github-file-icons/src/file-icons/db github-file-icons/src/file-icons/*.ts src/file-icons",
+    "build": "yarn prepare && tsc",
     "start": "yarn tsc && webpack serve",
-    "prepublishOnly": "tsc"
+    "prepublishOnly": "yarn build"
   },
   "repository": {
     "type": "git",
