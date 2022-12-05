@@ -11,7 +11,7 @@ module.exports = {
     "webpack/hot/dev-server.js",
     // Dev server client for web socket transport, hot and live reload logic
     "webpack-dev-server/client/index.js?hot=true&live-reload=true",
-    __dirname + "/explorer/index.tsx",
+    __dirname + "/demo/index.tsx",
   ],
   output: {
     filename: "bundle.js",
@@ -38,7 +38,6 @@ module.exports = {
       }
       devServer.app.use(express.json());
       devServer.app.get("/root", async (req, res) => {
-        const root = path.resolve(".");
         res.send(await getTreeNode('.'));
       });
     },

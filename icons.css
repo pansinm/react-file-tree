@@ -32,3 +32,18 @@
   content: '\f15b';
   font-size: 16px;
 }
+
+
+/* https://github.com/homerchen19/github-file-icons/issues/128 */
+.icon-file-pdf::before {
+  font-family: FontAwesome;
+  content: '\f1c1';
+  font-size: 16px;
+}
+
+/* https://github.com/homerchen19/github-file-icons/issues/130 */
+.icon-file-text::before {
+  font-family: FontAwesome;
+  content: '\f15c';
+  font-size: 16px;
+}
