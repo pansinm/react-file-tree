@@ -8,7 +8,7 @@ interface FileItemWithFileIconProps {
   treeNode: TreeNode;
 }
 
-function getClass(fileName: string, isDirectory: boolean, expanded?: boolean) {
+export function getFileIconClass(fileName: string, isDirectory: boolean, expanded?: boolean) {
   let className = "";
   if (isDirectory) {
     className = expanded ? "folder-icon-open" : "folder-icon";
@@ -25,7 +25,7 @@ function getClass(fileName: string, isDirectory: boolean, expanded?: boolean) {
 
 function FileItemWithFileIcon({ treeNode }: FileItemWithFileIconProps) {
   const filename = getFileName(treeNode.uri);
-  const iconClass = getClass(
+  const iconClass = getFileIconClass(
     filename,
     treeNode.type === "directory",
     treeNode.expanded

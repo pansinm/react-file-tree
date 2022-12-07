@@ -40,6 +40,7 @@ const toggleExpanded: FileTreeProps["onItemClick"] = (treeNode) => {
 
 ```tsx
 import FileItemWithFileIcon from '@sinm/react-file-tree/lib/FileItemWithFileIcon';
+// import { getFileIconClass } from '@sinm/react-file-tree/lib/FileItemWithFileIcon';
 import '@sinm/react-file-tree/icons.css';
 const itemRenderer = (treeNode: TreeNode) => <FileItemWithFileIcon treeNode={treeNode} />
 
