@@ -2,6 +2,8 @@
 
 ![](./assets/appearence.png)
 
+[Online Demo](https://codesandbox.io/s/react-file-tree-demo-yc52pj)
+
 ## Install
 
 ```bash
