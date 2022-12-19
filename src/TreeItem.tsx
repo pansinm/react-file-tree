@@ -40,7 +40,6 @@ export const TreeItem: FC<TreeItemProps> = memo(
     activated,
   }) => {
     const className = "file-tree__tree-item " + (activated ? "activated" : "");
-    console.log('---', className)
     return (
       <div
         className={className}

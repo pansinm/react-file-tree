@@ -96,11 +96,9 @@ export const FileTree = forwardRef<List, FileTreeProps>(
     const itemRender = itemRenderer
       ? (treeNode: TreeNode) => itemRenderer?.(treeNode)
       : defaultItemRenderer;
-    console.log(activatedUri);
     const rowRenderer = (params: ListRowProps) => {
       const treeNode = items[params.index];
       const indentNum = indent || 10;
-      console.log(treeNode.uri === activatedUri);
       return (
         <TreeItem
           draggable={draggable}
