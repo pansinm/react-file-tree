@@ -90,6 +90,16 @@ useEffect(() => {
     .then(setTree);
 }, []);
 ```
+6. activated style
+```css
+.file-tree__tree-item.activated {
+  background: rgba(0, 0, 0, 0.1);
+}
+```
+
+```tsx
+<FileTree tree={tree} activatedUri={uri}>
+```
 
 ## Demo
 

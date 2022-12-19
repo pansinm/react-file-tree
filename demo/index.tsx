@@ -2,7 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Tree } from "./Tree";
 import "../styles.css";
-import '../icons.css'
+import "../icons.css";
+import "./demo.css";
 
 ReactDOM.render(
   <div style={{ display: "flex" }}>

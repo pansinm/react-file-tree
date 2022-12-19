@@ -15,6 +15,7 @@ const sorter = (treeNodes: TreeNode[]) =>
 
 export const Tree: FC<{ iconType: "emoji" | "file-icon" }> = ({ iconType }) => {
   const [tree, setTree] = useState<TreeNode | undefined>();
+  const [activatedUri, setActivatedUri] = useState("");
 
   useEffect(() => {
     fetch("/root")
@@ -24,11 +25,14 @@ export const Tree: FC<{ iconType: "emoji" | "file-icon" }> = ({ iconType }) => {
   }, []);
 
   const toggleExpanded: FileTreeProps["onItemClick"] = (treeNode) => {
-    setTree((tree) =>
-      utils.assignTreeNode(tree, treeNode.uri, {
-        expanded: !treeNode.expanded,
-      })
-    );
+    if (treeNode.type === "directory") {
+      setTree((tree) =>
+        utils.assignTreeNode(tree, treeNode.uri, {
+          expanded: !treeNode.expanded,
+        })
+      );
+    }
+    setActivatedUri(treeNode.uri);
   };
   const itemRender =
     iconType === "file-icon"
@@ -38,6 +42,7 @@ export const Tree: FC<{ iconType: "emoji" | "file-icon" }> = ({ iconType }) => {
     <FileTree
       itemRenderer={itemRender}
       tree={tree}
+      activatedUri={activatedUri}
       onItemClick={toggleExpanded}
       sorter={sorter}
     />
