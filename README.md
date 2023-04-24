@@ -103,6 +103,25 @@ useEffect(() => {
 <FileTree tree={tree} activatedUri={uri}>
 ```
 
+## Props
+1. tree: TreeNode
+  ```ts
+  export type TreeNodeType = "directory" | "file";
+
+  export type TreeNode<T extends {} = {}, K extends keyof T = keyof T> = {
+    [x in K]: T[K];
+  } & {
+    type: TreeNodeType;
+    uri: string;
+    expanded?: boolean;
+    children?: TreeNode<T, K>[];
+  };
+  ```
+2. activatedUri: string
+3. onItemClick(treeNode: TreeNode):void
+4. itemRenderer(treeNode: TreeNode): React.Element
+5. sorter: (treeNodes: TreeNode[]) => TreeNode[]
+
 ## Demo
 
 ```
