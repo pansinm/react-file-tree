@@ -104,7 +104,7 @@ useEffect(() => {
 ```
 
 ## Props
-1. tree: TreeNode
+1. tree: TreeNode. Below is the TreeNode type，Examples can be found at https://codesandbox.io/s/react-file-tree-demo-yc52pj?file=/src/tree.json
   ```ts
   export type TreeNodeType = "directory" | "file";
 
